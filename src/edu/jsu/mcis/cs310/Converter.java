@@ -114,12 +114,12 @@ public class Converter {
             data.add(instance);
         }
 
-        /* Build JSON object */
+         // Build JSON object 
         JsonObject object = new JsonObject();
         object.put("ProdNums", prodNums);
         object.put("ColHeadings", colHeadings);
         object.put("Data", data);
-
+        
         result = Jsoner.serialize(object);
         
       
@@ -143,22 +143,25 @@ public class Converter {
         String result = ""; // default return value; replace later!
         
         try {
-            
+        
+         // Deserialized info to be used
         JsonObject jsonObject = Jsoner.deserialize(jsonString, new JsonObject());
         
+        // Set up JsonArrays to hold info
         JsonArray colHeadings = (JsonArray)jsonObject.get("ColHeadings");
         JsonArray prodNums = (JsonArray) jsonObject.get("ProdNums");
         JsonArray data = (JsonArray) jsonObject.get("Data");
         
+        //Set up String and CSV Writer
         StringWriter writer = new StringWriter();
         CSVWriter csvWriter = new CSVWriter(writer, ',', '"', '\\', "\n");
-        
+        // Collect headers
         String[] header = new String[colHeadings.size()];
         for (int i = 0; i < colHeadings.size(); i++) {
             header[i] = colHeadings.get(i).toString();
         }
         csvWriter.writeNext(header);
-
+        //Collect data
         for (int i = 0; i < data.size(); i++) {
 
             JsonArray instance = (JsonArray) data.get(i);
@@ -179,6 +182,7 @@ public class Converter {
         }
 
         csvWriter.close();
+      
         result = writer.toString();
         
         
