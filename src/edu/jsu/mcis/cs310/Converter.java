@@ -2,6 +2,9 @@ package edu.jsu.mcis.cs310;
 
 import com.github.cliftonlabs.json_simple.*;
 import com.opencsv.*;
+import java.io.*;
+import java.util.*;
+
 
 public class Converter {
     
@@ -75,10 +78,55 @@ public class Converter {
     public static String csvToJson(String csvString) {
         
         String result = "{}"; // default return value; replace later!
-        
+        // Read info for use
         try {
+        CSVReader reader = new CSVReader(new java.io.StringReader(csvString));
+        java.util.List<String[]> rows = reader.readAll();
+        reader.close();
+
+        // Put headings in array
+        JsonArray colHeadings = new JsonArray();
+        for (String heading : rows.get(0)) {
+            colHeadings.add(heading);
+        }
+
+        // Set up other arrays for info
+        JsonArray prodNums = new JsonArray();
+        JsonArray data = new JsonArray();
+
+       // Populate arrays with info
+        for (int i = 1; i < rows.size(); i++) {
+
+            String[] row = rows.get(i);
+
+            
+            prodNums.add(row[0]);
+
+            
+            JsonArray instance = new JsonArray();
+
+            instance.add(row[1]);                 
+            instance.add(Integer.parseInt(row[2])); 
+            instance.add(Integer.parseInt(row[3])); 
+            instance.add(row[4]);                  
+            instance.add(row[5]);                  
+            instance.add(row[6]);                  
+            data.add(instance);
+        }
+
+        /* Build JSON object */
+        JsonObject object = new JsonObject();
+        object.put("ProdNums", prodNums);
+        object.put("ColHeadings", colHeadings);
+        object.put("Data", data);
+
+        result = Jsoner.serialize(object);
         
-            // INSERT YOUR CODE HERE
+      
+        
+        
+        
+        
             
         }
         catch (Exception e) {
@@ -96,7 +144,45 @@ public class Converter {
         
         try {
             
-            // INSERT YOUR CODE HERE
+        JsonObject jsonObject = Jsoner.deserialize(jsonString, new JsonObject());
+        
+        JsonArray colHeadings = (JsonArray)jsonObject.get("ColHeadings");
+        JsonArray prodNums = (JsonArray) jsonObject.get("ProdNums");
+        JsonArray data = (JsonArray) jsonObject.get("Data");
+        
+        StringWriter writer = new StringWriter();
+        CSVWriter csvWriter = new CSVWriter(writer, ',', '"', '\\', "\n");
+        
+        String[] header = new String[colHeadings.size()];
+        for (int i = 0; i < colHeadings.size(); i++) {
+            header[i] = colHeadings.get(i).toString();
+        }
+        csvWriter.writeNext(header);
+
+        for (int i = 0; i < data.size(); i++) {
+
+            JsonArray instance = (JsonArray) data.get(i);
+            String[] row = new String[colHeadings.size()];
+
+            row[0] = prodNums.get(i).toString();
+            row[1] = instance.get(0).toString();
+            row[2] = instance.get(1).toString();
+
+            int episode = ((Number) instance.get(2)).intValue();
+            row[3] = String.format("%02d", episode);
+
+            row[4] = instance.get(3).toString();
+            row[5] = instance.get(4).toString();
+            row[6] = instance.get(5).toString();
+
+            csvWriter.writeNext(row);
+        }
+
+        csvWriter.close();
+        result = writer.toString();
+        
+        
+        
             
         }
         catch (Exception e) {
